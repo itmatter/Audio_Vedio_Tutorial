@@ -37,8 +37,3 @@ LIBS += -L G:/ffmpeg-4.3.2/lib \
 -lavcodec \
 
 
-
-
-
-
-
