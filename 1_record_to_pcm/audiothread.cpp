@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QDateTime>
+#include <windows.h>
 
 extern "C" {
     // 设备
@@ -29,7 +30,7 @@ extern "C" {
     //# 查看dshow支持的设备
     //ffmpeg -f dshow -list_devices true -i dummy
     #define FMT_NAME "dshow"
-    #define DEVICE_NAME "耳机 (靓模袭地球 Hands-Free AG Audio)"
+    #define DEVICE_NAME "audio=耳机 (靓模袭地球 Hands-Free AG Audio)"
     #define FILEPATH "G:/Resource"
     #define FILENAME "record_to_pcm.pcm"
 #else
@@ -57,6 +58,12 @@ extern "C" {
  * Press [q] to stop, [?] for help
  *
  * 从输入流中得知 原始输入信息 : 44100(采样率) stereo(双声道) pcm_f32le
+ *
+ *
+ * 如果是Win
+ * 录制 ：ffmpeg -f dshow -i "audio=耳机 (靓模袭地球 Hands-Free AG Audio)" out.wav
+ * 得到录制格式 s16le
+ * 播放 ：ffplay -ar 44100 -ac 2 -f s16le .\Resourcerecord_to_pcm.pcm
  */
 
 
@@ -95,6 +102,8 @@ void showSpec(AVFormatContext *ctx) {
     // 每一个样本的一个声道占用多少个字节
     qDebug() << av_get_bytes_per_sample((AVSampleFormat) params->format);
 }
+
+
 
 
 void AudioThread::run() {
@@ -161,6 +170,5 @@ void AudioThread::run() {
 void AudioThread::setStop(bool stop) {
     _stop = stop;
 }
-
 
 
