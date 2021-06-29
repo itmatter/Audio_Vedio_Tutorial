@@ -30,8 +30,9 @@ extern "C" {
     //# 查看dshow支持的设备
     //ffmpeg -f dshow -list_devices true -i dummy
     #define FMT_NAME "dshow"
-    #define DEVICE_NAME "audio=耳机 (靓模袭地球 Hands-Free AG Audio)"
-    #define FILEPATH "G:/Resource"
+    //    #define DEVICE_NAME "audio=耳机 (靓模袭地球 Hands-Free AG Audio)"
+    #define DEVICE_NAME "audio=麦克风 (Realtek High Definition Audio)"
+    #define FILEPATH "G:/Resource/"
     #define FILENAME "record_to_pcm.pcm"
 #else
     #define FMT_NAME "avfoundation"

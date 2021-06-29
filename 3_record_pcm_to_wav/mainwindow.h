@@ -25,5 +25,10 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+
+
+    QString pcmUrl;
+
+    QString wavUrl;
 };
 #endif // MAINWINDOW_H
