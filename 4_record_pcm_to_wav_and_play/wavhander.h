@@ -35,18 +35,19 @@
 // 创建一个结构体
 typedef struct {
     // RIFF Chunk
-    uint8_t riffChunkID[4] = {'R','I','F','F'};
+    uint8_t riffChunkID[4] = {'R', 'I', 'F', 'F'};
     uint32_t riffChunkSize;
 
     // DATA
-    uint8_t format[4] = {'W','A','V','E'};
+    uint8_t format[4] = {'W', 'A', 'V', 'E'};
 
     // FMT Chunk
-    uint8_t fmtChunkID[4] = {'f','m','t',' '};
+    uint8_t fmtChunkID[4] = {'f', 'm', 't', ' '};
     uint32_t fmtChunkSize = 16;
 
     //编码格式(音频编码)
-    uint16_t audioFormat = AUDIO_FORMAT_FLOAT;
+    // uint16_t audioFormat = AUDIO_FORMAT_FLOAT;//mac
+    uint16_t audioFormat = AUDIO_FORMAT_PCM;//win
     //声道数
     uint16_t numChannel;
     //采样率
@@ -60,7 +61,7 @@ typedef struct {
 
 
     // DATA Chunk
-    uint8_t dataChunkID[4] = {'d','a','t','a'};
+    uint8_t dataChunkID[4] = {'d', 'a', 't', 'a'};
     uint32_t dataChunkSize;
 
 } WAVHeader;
@@ -68,8 +69,7 @@ typedef struct {
 
 
 
-class WAVhander
-{
+class WAVhander {
 
 public:
     static void pcm_To_wav(WAVHeader &header,

@@ -35,6 +35,11 @@ macx {
     QMAKE_INFO_PLIST = mac/Info.plist
 }
 
+win32 {
+    FFMPEG_HOME = G:\ffmpeg-4.3.2
+}
+
+
 INCLUDEPATH += $${FFMPEG_HOME}/include
 
 LIBS += -L $${FFMPEG_HOME}/lib \
@@ -45,6 +50,4 @@ LIBS += -L $${FFMPEG_HOME}/lib \
 -lavutil \
 -lpostproc \
 -lswscale \
--lswresample \
--lavresample
-
+-lswresample
