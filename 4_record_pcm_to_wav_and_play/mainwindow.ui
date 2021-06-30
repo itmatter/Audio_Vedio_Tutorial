@@ -27,7 +27,7 @@
      <string>录制WAV文件</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="playBtn">
     <property name="geometry">
      <rect>
       <x>161</x>
@@ -47,7 +47,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

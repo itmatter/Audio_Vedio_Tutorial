@@ -14,18 +14,6 @@ extern "C" {
 #include <libavutil/avutil.h>
 }
 
-
-// Mac系统下使用命令行查看录音设备
-// ffmpeg -f avfoundation -list_devices true -i ''
-//
-// AVFoundation video devices:
-// [0] FaceTime HD Camera
-// [1] Capture screen 0
-// AVFoundation audio devices:
-// [0] Built-in Microphone
-//
-//
-// 格式名称，设备名称
 #ifdef Q_OS_WIN
     //# 查看dshow支持的设备
     //ffmpeg -f dshow -list_devices true -i dummy
@@ -43,29 +31,6 @@ extern "C" {
 
 
 
-/*
- * 通过ffmpeg录制PCM, 录制完毕之后, 通过命令行播放,
- * ffplay -ar 44100 -ac 2 -f f32le xxx.pcm
- *
- * 可以通过ffmpeg命令行录制音频得知当前的音频录制格式,
- * ffmpeg -f avfoundation -i :0 record.wav
- *
- * Input #0, avfoundation, from ':0':
- * Duration: N/A, start: 91244.807710, bitrate: 2822 kb/s
- * Stream #0:0: Audio: pcm_f32le, 44100 Hz, stereo, flt, 2822 kb/s
- * Stream mapping:
- * Stream #0:0 -> #0:0 (pcm_f32le (native) -> pcm_s16le (native))
- * Press [q] to stop, [?] for help
- *
- * 从输入流中得知 原始输入信息 : 44100(采样率) stereo(双声道) pcm_f32le
- *
- *
- *
- * 如果是Win
- * 录制 ：ffmpeg -f dshow -i "audio=耳机 (靓模袭地球 Hands-Free AG Audio)" out.wav
- * 得到录制格式 s16le
- * 播放 ：ffplay -ar 44100 -ac 2 -f s16le .\Resourcerecord_to_pcm.pcm
- */
 AudioThread::AudioThread(QObject *parent) : QThread(parent) {
 //    // 当监听到线程结束时（finished），就调用deleteLater回收内存
     connect(this, &AudioThread::finished,
@@ -127,8 +92,6 @@ void AudioThread::run() {
     showSpec(ctx);
     // 文件名
     QString filename = FILEPATH;
-//    filename += QDateTime::currentDateTime().toString("MM_dd_HH_mm_ss");
-//    filename += ".pcm";
     filename += FILENAME;
     QFile file(filename);
     // 打开文件
@@ -178,6 +141,8 @@ void AudioThread::run() {
 void AudioThread::setStop(bool stop) {
     _stop = stop;
 }
+
+
 
 
 

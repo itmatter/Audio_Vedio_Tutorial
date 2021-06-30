@@ -3,12 +3,14 @@
 
 #include <QMainWindow>
 #include "audiothread.h"
+#include "playthread.h"
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+namespace Ui {
+    class MainWindow;
+}
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
@@ -18,10 +20,11 @@ public:
 private slots:
     void on_recordBtn_clicked();
 
-    void on_pushButton_clicked();
+    void on_playBtn_clicked();
 
 private:
     Ui::MainWindow *ui;
     AudioThread *_audioThread = nullptr;
+    PlayThread *_playThread = nullptr;
 };
 #endif // MAINWINDOW_H

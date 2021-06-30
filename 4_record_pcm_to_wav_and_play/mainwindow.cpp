@@ -2,6 +2,11 @@
 #include "ui_mainwindow.h"
 #include "wavhander.h"
 #include <QtDebug>
+
+extern "C" {
+#include <libavdevice/avdevice.h>
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow) {
@@ -40,7 +45,26 @@ void MainWindow::on_recordBtn_clicked() {
 
 
 
-void MainWindow::on_pushButton_clicked() {
-    qDebug() << "on_pushButton_clicked";
-    //打开文件，播放WAV
+void MainWindow::on_playBtn_clicked() {
+    qDebug() << "on_playBtn_clicked";
+    // 调动
+    if (!_audioThread) { // 点击了“播放”
+        // 开启线程
+        _playThread = new PlayThread(this);
+        _playThread->start();
+        connect(_playThread, &PlayThread::finished,
+        [this]() { // 线程结束
+            _playThread = nullptr;
+            ui->playBtn->setText("播放");
+        });
+        // 设置按钮文字
+        ui->playBtn->setText("停止");
+    } else { // 点击了“结束录音”
+        // 结束线程
+        _playThread->setStop(true);
+        _playThread->requestInterruption();
+        _playThread = nullptr;
+        // 设置按钮文字
+        ui->playBtn->setText("播放");
+    }
 }
