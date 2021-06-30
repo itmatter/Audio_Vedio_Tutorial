@@ -1,8 +1,6 @@
 #include "playthread.h"
 #include <QDebug>
 
-
-
 PlayThread::PlayThread(QObject *parent) : QThread(parent) {
 //    // 当监听到线程结束时（finished），就调用deleteLater回收内存
     connect(this, &PlayThread::finished,
@@ -23,7 +21,7 @@ PlayThread::~PlayThread() {
 
 
 
-
+//使用SDL2来播放
 void PlayThread::run() {
     qDebug() <<  "run";
     sleep(2);

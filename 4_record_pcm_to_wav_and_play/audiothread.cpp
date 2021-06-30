@@ -21,12 +21,16 @@ extern "C" {
     //    #define DEVICE_NAME "audio=耳机 (靓模袭地球 Hands-Free AG Audio)"
     #define DEVICE_NAME "audio=麦克风 (Realtek High Definition Audio)"
     #define FILEPATH "G:/Resource/"
-    #define FILENAME "record_pcm_to_wav.wav"
+    #define FILENAME "record_to_pcm.pcm"
+    #define WAVFILEPATH "G:/Resource/"
+    #define WAVFILENAME "pcm_to_wav.wav"
 #else
     #define FMT_NAME "avfoundation"
     #define DEVICE_NAME ":0"
     #define FILEPATH "/Users/lumi/Desktop/"
     #define FILENAME "record_to_pcm.pcm"
+    #define WAVFILEPATH "/Users/lumi/Desktop/"
+    #define WAVFILENAME "pcm_to_wav.wav"
 #endif
 
 
@@ -70,14 +74,14 @@ void showSpec(AVFormatContext *ctx) {
 
 void AudioThread::run() {
     qDebug() << this << "开始执行----------";
-    // 获取输入格式对象
+    // 1-----获取输入格式对象
     AVInputFormat *fmt = av_find_input_format(FMT_NAME);
     if (!fmt) {
         qDebug() << "获取输入格式对象失败" << FMT_NAME;
         return;
     }
     qDebug() << "fmt : " << fmt;
-    // 格式上下文（将来可以利用上下文操作设备）
+    // 2-----格式上下文（将来可以利用上下文操作设备）
     AVFormatContext *ctx = nullptr;
     // 打开设备
     int ret = avformat_open_input(&ctx, DEVICE_NAME, fmt, nullptr);
@@ -91,10 +95,10 @@ void AudioThread::run() {
     // 打印一下录音设备的参数信息
     showSpec(ctx);
     // 文件名
+    // 3-----打开文件
     QString filename = FILEPATH;
     filename += FILENAME;
     QFile file(filename);
-    // 打开文件
     // WriteOnly：只写模式。如果文件不存在，就创建文件；如果文件存在，就会清空文件内容
     if (!file.open(QFile::WriteOnly)) {
         qDebug() << "文件打开失败" << filename;
@@ -102,7 +106,7 @@ void AudioThread::run() {
         avformat_close_input(&ctx);
         return;
     }
-    // 数据包
+    // 4----数据包
     AVPacket pkt;
     while (!isInterruptionRequested()) {
         // 不断采集数据
@@ -122,7 +126,7 @@ void AudioThread::run() {
     // 释放资源
     // 关闭文件
     file.close();
-    // 录制WAV文件
+    // 5----录制WAV文件
     AVStream *stream = ctx->streams[0];
     AVCodecParameters *param = stream->codecpar;
     //调用函数
@@ -130,10 +134,10 @@ void AudioThread::run() {
     header.numChannel = param->channels;
     header.sampleRate = param->sample_rate;
     header.bitsPerSample = av_get_bits_per_sample(param->codec_id);
-    WAVhander::pcm_To_wav(header,
-                          (char *)"/Users/lumi/Desktop/record_to_pcm.pcm",
-                          (char *)"/Users/lumi/Desktop/pcm_To_wav.wav" );
-    // 关闭设备
+    QString wavFileName = WAVFILEPATH;
+    wavFileName += WAVFILENAME;
+    WAVhander::pcm_To_wav(header, filename.toLatin1().data(), wavFileName.toLatin1().data() );
+    // 6----关闭设备
     avformat_close_input(&ctx);
     qDebug() << this << "正常结束----------";
 }
