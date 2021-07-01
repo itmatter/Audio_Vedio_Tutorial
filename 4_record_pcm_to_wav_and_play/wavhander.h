@@ -6,13 +6,6 @@
 #define AUDIO_FORMAT_PCM 1
 #define AUDIO_FORMAT_FLOAT 3
 
-// 注意 :
-// 注意 :
-// 注意 :
-// 注意 : 这里转成WAV 对应的编码格式是 Stream #0:0: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 44100 Hz, 2 channels, s16, 1411 kb/s
-// 注意 : 也就是如果电脑本身是 f32le的编码格式, 那么就播放不了, 这里就需要重采样为f32le
-
-
 #ifdef Q_OS_WIN
     #define AUDIO_FORMAT AUDIO_FORMAT_PCM
 #else

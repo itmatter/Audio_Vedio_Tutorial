@@ -25,6 +25,11 @@ PlayThread::~PlayThread() {
 void PlayThread::run() {
     qDebug() <<  "run";
     sleep(2);
+
+
+
+
+
 }
 
 void PlayThread::setStop(bool stop) {
