@@ -31,26 +31,25 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 
 macx {
-    # 设置头文件路径
-    LIB_HOME = ./Res
     # 配置权限相关
     QMAKE_INFO_PLIST = mac/Info.plist
 }
 
 win32 {
-    LIB_HOME = ./Res
 }
 
+LIB_HOME = ./../Res
 
 INCLUDEPATH += $${LIB_HOME}/include
 
-LIBS += -L $${LIB_HOME}/lib -lSDL2
-LIBS += -L $${LIB_HOME}/lib -lavcodec
-LIBS += -L $${LIB_HOME}/lib -lavdevice
-LIBS += -L $${LIB_HOME}/lib -lavfilter
-LIBS += -L $${LIB_HOME}/lib -lavformat
-LIBS += -L $${LIB_HOME}/lib -lavutil
-LIBS += -L $${LIB_HOME}/lib -lpostproc
-LIBS += -L $${LIB_HOME}/lib -lswscale
-LIBS += -L $${LIB_HOME}/lib -lswresample
+LIBS += -L $${LIB_HOME}/lib \
+-lavcodec \
+-lavdevice \
+-lavfilter \
+-lavformat \
+-lavutil \
+-lpostproc \
+-lswscale \
+-lswresample \
+-lSDL2
 

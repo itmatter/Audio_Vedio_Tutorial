@@ -3,14 +3,11 @@
 #include <QDebug>
 extern "C" {
 #include <libavdevice/avdevice.h>
-#include "SDL2/SDL.h"
 }
+
 
 int main(int argc, char *argv[])
 {
-    qDebug() << "SDL_Init : "<<SDL_Init(SDL_INIT_AUDIO);
-
-
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
