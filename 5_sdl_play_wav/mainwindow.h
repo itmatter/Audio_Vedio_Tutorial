@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include "playthread.h"
-
 QT_BEGIN_NAMESPACE
 namespace Ui {
     class MainWindow;
@@ -18,10 +17,12 @@ public:
     ~MainWindow();
 
 private slots:
+    void on_recordBtn_clicked();
 
-    void on_pushButton_clicked();
+    void on_playBtn_clicked();
 
 private:
     Ui::MainWindow *ui;
+    PlayThread *_playThread = nullptr;
 };
 #endif // MAINWINDOW_H

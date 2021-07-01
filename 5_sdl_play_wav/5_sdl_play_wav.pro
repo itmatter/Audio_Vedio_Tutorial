@@ -44,4 +44,3 @@ LIBS += -L $${SDL_HOME}/lib \
 -lSDL2main
 
 
-

@@ -14,19 +14,6 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="recordBtn">
-    <property name="geometry">
-     <rect>
-      <x>151</x>
-      <y>140</y>
-      <width>201</width>
-      <height>32</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>录制WAV文件</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="playBtn">
     <property name="geometry">
      <rect>

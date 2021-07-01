@@ -12,13 +12,11 @@ SOURCES += \
     audiothread.cpp \
     main.cpp \
     mainwindow.cpp \
-    playthread.cpp \
     wavhander.cpp
 
 HEADERS += \
     audiothread.h \
     mainwindow.h \
-    playthread.h \
     wavhander.h
 
 FORMS += \
