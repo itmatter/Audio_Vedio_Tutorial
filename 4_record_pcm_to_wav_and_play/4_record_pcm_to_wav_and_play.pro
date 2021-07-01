@@ -31,18 +31,20 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 
 macx {
+    # 设置头文件路径
+    FFMPEG_HOME = /usr/local/Cellar/ffmpeg/4.3.2_3
     # 配置权限相关
     QMAKE_INFO_PLIST = mac/Info.plist
 }
 
 win32 {
+    FFMPEG_HOME = G:\ffmpeg-4.3.2
 }
 
-LIB_HOME = ./../Res
 
-INCLUDEPATH += $${LIB_HOME}/include
+INCLUDEPATH += $${FFMPEG_HOME}/include
 
-LIBS += -L $${LIB_HOME}/lib \
+LIBS += -L $${FFMPEG_HOME}/lib \
 -lavcodec \
 -lavdevice \
 -lavfilter \
@@ -50,6 +52,4 @@ LIBS += -L $${LIB_HOME}/lib \
 -lavutil \
 -lpostproc \
 -lswscale \
--lswresample \
--lSDL2
-
+-lswresample
