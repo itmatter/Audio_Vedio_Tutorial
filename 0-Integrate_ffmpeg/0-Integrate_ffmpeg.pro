@@ -31,9 +31,18 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 
-INCLUDEPATH += G:/ffmpeg-4.3.2/include
+macx {
+    # 设置头文件路径
+    FFMPEG_HOME = /usr/local/Cellar/ffmpeg/4.3.2_3
+    # 配置权限相关
+    QMAKE_INFO_PLIST = mac/Info.plist
+}
 
-LIBS += -L G:/ffmpeg-4.3.2/lib \
--lavcodec \
+win32 {
+    FFMPEG_HOME = G:\ffmpeg-4.3.2
+}
 
+INCLUDEPATH += $${FFMPEG_HOME}/include
 
+LIBS += -L $${FFMPEG_HOME}/lib \
+-lavutil
