@@ -27,9 +27,9 @@ extern "C" {
 #else
     #define FMT_NAME "avfoundation"
     #define DEVICE_NAME ":0"
-    #define FILEPATH "/Users/lumi/Desktop/"
+    #define FILEPATH "/Users/liliguang/Desktop/"
     #define FILENAME "record_to_pcm.pcm"
-    #define WAVFILEPATH "/Users/lumi/Desktop/"
+    #define WAVFILEPATH "/Users/liliguang/Desktop/"
     #define WAVFILENAME "pcm_to_wav.wav"
 #endif
 
@@ -106,7 +106,11 @@ void AudioThread::run() {
         avformat_close_input(&ctx);
         return;
     }
-    // 4----数据包
+
+
+
+
+    // 4----采集数据
     AVPacket pkt;
     while (!isInterruptionRequested()) {
         // 不断采集数据
@@ -123,8 +127,11 @@ void AudioThread::run() {
             break;
         }
     }
-    // 释放资源
-    // 关闭文件
+
+    // 当不再需要数据包时 The packet must be freed with av_packet_unref() when  it is no longer needed.
+    av_packet_unref(&pkt);
+
+    // 释放资源 关闭文件
     file.close();
     // 5----录制WAV文件
     AVStream *stream = ctx->streams[0];
