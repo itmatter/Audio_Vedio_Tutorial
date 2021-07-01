@@ -3,24 +3,6 @@
 
 #include <stdint.h>
 
-/*
- * 复习 :
- * short占据的内存大小是2 个byte；
- * int占据的内存大小是4 个byte；
- * long占据的内存大小是4 个byte；
- * float占据的内存大小是4 个byte；
- * double占据的内存大小是8 个byte；
- * char占据的内存大小是1 个byte。
- *
- *
- * uint8_t 无符号1个字节的整型
- * uint16_t 无符号2个字节的整型
- * uint32_t 无符号4个字节的整型
- * uint64_t 无符号8个字节的整型
-
- *
- */
-
 #define AUDIO_FORMAT_PCM 1
 #define AUDIO_FORMAT_FLOAT 3
 
@@ -29,6 +11,13 @@
 // 注意 :
 // 注意 : 这里转成WAV 对应的编码格式是 Stream #0:0: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 44100 Hz, 2 channels, s16, 1411 kb/s
 // 注意 : 也就是如果电脑本身是 f32le的编码格式, 那么就播放不了, 这里就需要重采样为f32le
+
+
+#ifdef Q_OS_WIN
+    #define AUDIO_FORMAT AUDIO_FORMAT_PCM
+#else
+    #define AUDIO_FORMAT AUDIO_FORMAT_FLOAT
+#endif
 
 
 
@@ -46,8 +35,7 @@ typedef struct {
     uint32_t fmtChunkSize = 16;
 
     //编码格式(音频编码)
-    // uint16_t audioFormat = AUDIO_FORMAT_FLOAT;//mac
-    uint16_t audioFormat = AUDIO_FORMAT_PCM;//win
+    uint16_t audioFormat = AUDIO_FORMAT;
     //声道数
     uint16_t numChannel;
     //采样率
