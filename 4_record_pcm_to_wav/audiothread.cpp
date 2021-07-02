@@ -72,6 +72,7 @@ void showSpec(AVFormatContext *ctx) {
 }
 
 
+// 需要注意的是, Mac系统下需要用Debug模式运行, 会弹出访问权限.
 void AudioThread::run() {
     qDebug() << this << "开始执行----------";
     // 1-----获取输入格式对象
@@ -84,7 +85,11 @@ void AudioThread::run() {
     // 2-----格式上下文（将来可以利用上下文操作设备）
     AVFormatContext *ctx = nullptr;
     // 打开设备
-    int ret = avformat_open_input(&ctx, DEVICE_NAME, fmt, nullptr);
+
+
+    qDebug() << "DEVICE_NAME : " << DEVICE_NAME;
+
+    int ret = avformat_open_input(&ctx, ":0", fmt, nullptr);
     if (ret < 0) {
         char errbuf[1024];
         av_strerror(ret, errbuf, sizeof (errbuf));

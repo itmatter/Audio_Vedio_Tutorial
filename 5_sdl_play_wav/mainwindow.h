@@ -17,8 +17,6 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_recordBtn_clicked();
-
     void on_playBtn_clicked();
 
 private:
