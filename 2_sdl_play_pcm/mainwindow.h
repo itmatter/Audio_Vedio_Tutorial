@@ -19,9 +19,11 @@ public:
 
 private slots:
 
-    void on_pushButton_clicked();
+    void on_playBtn_clicked();
 
 private:
     Ui::MainWindow *ui;
+    Playthread *_playThread = nullptr;
+
 };
 #endif // MAINWINDOW_H
