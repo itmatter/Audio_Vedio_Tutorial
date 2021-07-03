@@ -12,8 +12,6 @@ public:
     explicit Playthread(QObject *parent = nullptr);
     ~Playthread();
     void setStop(bool stop);
-
-
 };
 
 #endif // PLAYTHREAD_H

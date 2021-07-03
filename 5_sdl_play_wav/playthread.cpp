@@ -56,19 +56,16 @@ void pull_audio_data(void *userdata,
                      int len
                     ) {
     qDebug() << "pull_audio_data" << len;
-
     // 清空stream（静音处理）
     SDL_memset(stream, 0, len);
-
     // 取出AudioBuffer
     AudioBuffer *buffer = (AudioBuffer *) userdata;
-
     // 文件数据还没准备好
-    if (buffer->len <= 0) return;
-
+    if (buffer->len <= 0) {
+        return;
+    }
     // 取len、bufferLen的最小值（为了保证数据安全，防止指针越界）
     buffer->pullLen = (len > buffer->len) ? buffer->len : len;
-
     // 填充数据
     SDL_MixAudio(stream,
                  buffer->data,
@@ -89,7 +86,6 @@ void PlayThread::run() {
         qDebug() << "SDL_Init error" << SDL_GetError();
         return;
     }
-
     // 加载wav文件
     SDL_AudioSpec spec;
     // 指向PCM数据
@@ -104,17 +100,12 @@ void PlayThread::run() {
         SDL_Quit();
         return;
     }
-
-    // 音频缓冲区的样本数量
     spec.samples = 1024;
-    // 设置回调
     spec.callback = pull_audio_data;
-    // 设置userdata
     AudioBuffer buffer;
     buffer.data = data;
     buffer.len = len;
     spec.userdata = &buffer;
-
     // 打开设备
     if (SDL_OpenAudio(&spec, nullptr)) {
         qDebug() << "SDL_OpenAudio error" << SDL_GetError();
@@ -122,19 +113,17 @@ void PlayThread::run() {
         SDL_Quit();
         return;
     }
-
     // 开始播放（0是取消暂停）
     SDL_PauseAudio(0);
-
     // 计算一些参数
     int sampleSize = SDL_AUDIO_BITSIZE(spec.format);
     int bytesPerSample = (sampleSize * spec.channels) >> 3;
-
     // 存放从文件中读取的数据
     while (!isInterruptionRequested()) {
         // 只要从文件中读取的音频数据，还没有填充完毕，就跳过
-        if (buffer.len > 0) continue;
-
+        if (buffer.len > 0) {
+            continue;
+        }
         // 文件数据已经读取完毕
         if (buffer.len <= 0) {
             // 剩余的样本数量
@@ -144,13 +133,10 @@ void PlayThread::run() {
             break;
         }
     }
-
     // 释放WAV文件数据
     SDL_FreeWAV(data);
-
     // 关闭设备
     SDL_CloseAudio();
-
     // 清除所有的子系统
     SDL_Quit();
 }

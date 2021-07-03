@@ -3,24 +3,18 @@
 #include <QDebug>
 #include <QFile>
 
-
 extern "C" {
 #include <SDL2/SDL.h>
 }
 
 #ifdef Q_OS_WIN
-    #define FMT_NAME "avfoundation"
-    #define DEVICE_NAME ":0"
     #define FILEPATH "G:/Resource/"
     #define FILENAME "record_to_pcm.pcm"
     #define FORMAT AUDIO_S16SYS
 #else
-    #define FMT_NAME "avfoundation"
-    #define DEVICE_NAME ":0"
     #define FILEPATH "/Users/lumi/Desktop/"
     #define FILENAME "record_to_pcm.pcm"
     #define FORMAT AUDIO_F32
-
 #endif
 
 //采样率
@@ -64,7 +58,9 @@ void pull_audio_data (void *userdata,
                       Uint8 *stream,
                       // 希望填充的大小(samples * format * channels / 8)
                       int len) {
-    qDebug() << "pull_audio_data" << len;
+    qDebug() << "pull_audio_data userdata : " << userdata;
+    qDebug() << "pull_audio_data stream ： " << stream;
+    qDebug() << "pull_audio_data len ： " << len;
     if (stream == nullptr) {
         return;
     }
@@ -87,11 +83,9 @@ void pull_audio_data (void *userdata,
  * ②数组越界；
  * ③debug模式下使用了release版本的库或者release模式下使用了debug版本的库；
  * ④程序运行所需要的库没有加载进来（一般是dll），找到所需的动态库放到正确位置。
- *
- *
  */
 void Playthread::run() {
-    if(SDL_Init(SDL_INIT_EVERYTHING)) {
+    if(SDL_Init(SDL_INIT_AUDIO)) {
         qDebug() << "SDL_Init error : " << SDL_GetError();
         return;
     }
@@ -101,8 +95,7 @@ void Playthread::run() {
     audioSpec.channels = CHANNELS;
     audioSpec.samples = SAMPLES;
     audioSpec.callback = pull_audio_data;
-    // 传递给回调的参数
-    audioSpec.userdata = (void *)100;
+    audioSpec.userdata = (void *)3;
     if(SDL_OpenAudio(&audioSpec, nullptr)) {
         qDebug() << "SDL_OpenAudio err" << SDL_GetError();
         SDL_Quit();
