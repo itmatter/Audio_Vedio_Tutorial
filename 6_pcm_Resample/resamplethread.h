@@ -10,9 +10,6 @@ private:
 public:
     explicit ResampleThread(QObject *parent = nullptr);
     ~ResampleThread();
-
-
-
 };
 
 #endif // RESAMPLETHREAD_H
