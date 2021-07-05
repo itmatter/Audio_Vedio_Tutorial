@@ -28,7 +28,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 macx {
     # 设置头文件路径
-    FFMPEG_HOME = /usr/local/Cellar/ffmpeg/4.3.2_3
+    FFMPEG_HOME = /usr/local/Cellar/ffmpeg/4.3.2
     # 配置权限相关
     QMAKE_INFO_PLIST = mac/Info.plist
 }

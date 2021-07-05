@@ -3,7 +3,6 @@
 #include <QDebug>
 #include <QFile>
 #include <QDateTime>
-#include <windows.h>
 
 extern "C" {
     // 设备
@@ -37,7 +36,7 @@ extern "C" {
 #else
     #define FMT_NAME "avfoundation"
     #define DEVICE_NAME ":0"
-    #define FILEPATH "/Users/lumi/Desktop/"
+    #define FILEPATH "/Users/liliguang/Desktop/"
     #define FILENAME "record_to_pcm.pcm"
 
 #endif
@@ -131,12 +130,8 @@ void AudioThread::run() {
     showSpec(ctx);
     // 文件名
     QString filename = FILEPATH;
-//    filename += QDateTime::currentDateTime().toString("MM_dd_HH_mm_ss");
-//    filename += ".pcm";
     filename += FILENAME;
     QFile file(filename);
-    // 打开文件
-    // WriteOnly：只写模式。如果文件不存在，就创建文件；如果文件存在，就会清空文件内容
     if (!file.open(QFile::WriteOnly)) {
         qDebug() << "文件打开失败" << filename;
         // 关闭设备
