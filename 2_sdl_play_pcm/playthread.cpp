@@ -11,24 +11,28 @@ extern "C" {
     #define FILEPATH "G:/Resource/"
     #define FILENAME "record_to_pcm.pcm"
     #define FORMAT AUDIO_S16SYS
+
+    #define SAMPLE_RATE 44100
+    #define SAMPLE_BIT_DEPTH 32
+    #define CHANNELS 2
+    #define SAMPLES 4096
+    #define SAMPLE_PER_BYTES ((SAMPLE_BIT_DEPTH * CHANNELS) / 8)
+    #define BUFFER_SIZE (SAMPLES * SAMPLE_PER_BYTES)
+
 #else
-    #define FILEPATH "/Users/lumi/Desktop/"
+    #define FILEPATH "/Users/liliguang/Desktop/"
     #define FILENAME "record_to_pcm.pcm"
-    #define FORMAT AUDIO_F32
+    #define FORMAT AUDIO_F32SYS
+
+    #define SAMPLE_RATE 44100       //采样率
+    #define SAMPLE_BIT_DEPTH 32     //位深度
+    #define CHANNELS 2              //声道数
+    #define SAMPLES 4096            //音频缓存区的样本大小
+    #define SAMPLE_PER_BYTES ((SAMPLE_BIT_DEPTH * CHANNELS) / 8)    //每个样本占多少字节 (1byte = 8bit)
+    #define BUFFER_SIZE (SAMPLES * SAMPLE_PER_BYTES)                //文件缓冲区的大小 (样本大小 *  每个样本占多少字节)
 #endif
 
-//采样率
-#define SAMPLE_RATE 44100
-//位深度
-#define SAMPLE_BIT_DEPTH 16
-//声道数
-#define CHANNELS 2
-//音频缓存区的样本大小
-#define SAMPLES 4096
-//每个样本占多少字节 (1byte = 8bit)
-#define SAMPLE_PER_BYTES ((SAMPLE_BIT_DEPTH * CHANNELS) / 8)
-//文件缓冲区的大小 (样本大小 *  每个样本占多少字节)
-#define BUFFER_SIZE (SAMPLES * SAMPLE_PER_BYTES)
+
 
 
 Playthread::Playthread(QObject *parent) : QThread(parent) {
@@ -95,7 +99,7 @@ void Playthread::run() {
     audioSpec.channels = CHANNELS;
     audioSpec.samples = SAMPLES;
     audioSpec.callback = pull_audio_data;
-    audioSpec.userdata = (void *)3;
+    audioSpec.userdata = nullptr;
     if(SDL_OpenAudio(&audioSpec, nullptr)) {
         qDebug() << "SDL_OpenAudio err" << SDL_GetError();
         SDL_Quit();
