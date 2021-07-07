@@ -166,7 +166,8 @@ void AACEncodeThread::run() {
     codecCtx->channels = av_get_channel_layout_nb_channels(codecCtx->channel_layout);
 
     // 不同的比特率影响不同的编码大小.
-    codecCtx->bit_rate = (44100 * 32 * codecCtx->channels);
+    // codecCtx->bit_rate = (44100 * 32 * codecCtx->channels);
+    codecCtx->bit_rate = 64000;
 
 
     // 检查编码器支持的样本格式
@@ -212,7 +213,7 @@ void AACEncodeThread::run() {
 
 
     // 编码
-    // 源文件 ==> (AVFrame)输入缓冲区 ==> (AVPacket)输出缓冲区 ==> 输出文件
+    // 源文件 ==> (AVFrame)输入缓冲区 ==> 编码器 ==> (AVPacket)输出缓冲区 ==> 输出文件
     // frame 是一帧的数据,  把文件中的数据读取到frame中
     while( (readFile_Ret = inFile.read((char *)frame->data[0],frame->linesize[0])) > 0 ) {
 
