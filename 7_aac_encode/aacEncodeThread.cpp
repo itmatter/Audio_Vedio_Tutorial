@@ -28,9 +28,11 @@ extern "C" {
 #ifdef Q_OS_WIN
     #define IN_PCM_FILEPATH "G:/Resource/record_to_pcm.pcm"
     #define OUT_AAC_FILEPATH "G:/Resource/pcm_to_aac.aac"
+    #define SAMPLE_FMT AV_SAMPLE_FMT_S16
 #else
     #define IN_PCM_FILEPATH "/Users/liliguang/Desktop/record_to_pcm.pcm"
     #define OUT_AAC_FILEPATH "/Users/liliguang/Desktop/pcm_to_aac.aac"
+    #define SAMPLE_FMT AV_SAMPLE_FMT_FLTP
 #endif
 
 
@@ -65,12 +67,12 @@ typedef struct {
 
 /* check that a given sample format is supported by the encoder */
 static int check_sample_fmt(const AVCodec *codec,
-                            enum AVSampleFormat sample_fmt)
-{
+                            enum AVSampleFormat sample_fmt) {
     const enum AVSampleFormat *p = codec->sample_fmts;
     while (*p != AV_SAMPLE_FMT_NONE) {
-        if (*p == sample_fmt)
+        if (*p == sample_fmt) {
             return 1;
+        }
         p++;
     }
     return 0;
@@ -83,8 +85,7 @@ static int check_sample_fmt(const AVCodec *codec,
 static int encode(AVCodecContext *ctx,
                   AVFrame *frame,
                   AVPacket *pkt,
-                  QFile &outFile)
-{
+                  QFile &outFile) {
     // 发送数据到编码器
     int ret = avcodec_send_frame(ctx, frame);
     if (ret < 0) {
@@ -98,6 +99,7 @@ static int encode(AVCodecContext *ctx,
     while (true) {
         ret = avcodec_receive_packet(ctx, pkt);
         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+            //  output is not available in the current state - user must try to send input
             // 继续读取数据到frame，然后送到编码器
             return 0;
         } else if (ret < 0) { // 其他错误
@@ -127,11 +129,11 @@ void AACEncodeThread::run() {
     // 编码器
     const AVCodec *codec;
     // 编码器上下文
-    AVCodecContext *codecCtx= NULL;
+    AVCodecContext *codecCtx = nullptr;
     // 源文件数据源存储结构指针
-    AVFrame *frame;
+    AVFrame *frame = nullptr;
     // 编码文件数据源存储结构指针
-    AVPacket *pkt;
+    AVPacket *pkt = nullptr;
 
     int check_sample_fmt_Ret;
     int avcodec_open2_Ret;
@@ -141,6 +143,7 @@ void AACEncodeThread::run() {
     int outfileOpen_Ret;
 
     int readFile_Ret;
+    int encode_ret;
 
 
     infilename = IN_PCM_FILEPATH;
@@ -150,8 +153,10 @@ void AACEncodeThread::run() {
     QFile outFile(outfilename);
 
 
-    // 打开编码器
-    codec = avcodec_find_encoder(AV_CODEC_ID_AAC);
+    // 编码器
+    // codec = avcodec_find_encoder(AV_CODEC_ID_AAC);
+    codec = avcodec_find_encoder_by_name("libfdk_aac"); // 用查找编码器的名称的方式。 默认的可能找到的不一样
+
     CHECK_IF_ERROR_BUF_END(!codec, "avcodec_find_encoder");
 
     // 创建编码器上下文
@@ -160,20 +165,26 @@ void AACEncodeThread::run() {
 
     // 设置编码器上下文参数
     codecCtx->sample_rate = 44100;
-    codecCtx->sample_fmt = AV_SAMPLE_FMT_FLTP; // planner格式
+    codecCtx->sample_fmt = SAMPLE_FMT; // planner格式
     codecCtx->channel_layout = AV_CH_LAYOUT_STEREO;
     codecCtx->channels = av_get_channel_layout_nb_channels(codecCtx->channel_layout);
 
     // 不同的比特率影响不同的编码大小.
     // codecCtx->bit_rate = (44100 * 32 * codecCtx->channels);
-    codecCtx->bit_rate = 64000;
+    // codecCtx->bit_rate = 64000;
+
+    // 比特率
+    codecCtx->bit_rate = 32000;
+    // 规格
+    codecCtx->profile = FF_PROFILE_AAC_HE_V2;
+
 
     // 检查编码器支持的样本格式
     check_sample_fmt_Ret = check_sample_fmt(codec, codecCtx->sample_fmt);
     CHECK_IF_ERROR_BUF_END(!check_sample_fmt_Ret, "check_sample_fmt");
 
     // 打开编码器
-    avcodec_open2_Ret = avcodec_open2(codecCtx,codec,nullptr);
+    avcodec_open2_Ret = avcodec_open2(codecCtx, codec, nullptr);
     CHECK_IF_ERROR_BUF_END(avcodec_open2_Ret, "avcodec_open2");
 
     // 打开源文件
@@ -206,34 +217,31 @@ void AACEncodeThread::run() {
     //
     // 所以需要先设置frame->format, frame->nb_samples , frame->channel_layout
     //
-    av_frame_get_buffer_Ret = av_frame_get_buffer(frame,0);
+    av_frame_get_buffer_Ret = av_frame_get_buffer(frame, 0);
     CHECK_IF_ERROR_BUF_END(av_frame_get_buffer_Ret < 0, "av_frame_get_buffer");
 
 
     // 编码
     // 源文件 ==> (AVFrame)输入缓冲区 ==> 编码器 ==> (AVPacket)输出缓冲区 ==> 输出文件
-    while( (readFile_Ret = inFile.read((char *)frame->data[0],frame->linesize[0])) > 0 ) {
-        qDebug() << "readFile_Ret : " << readFile_Ret << "frame->linesize[0] : " << frame->linesize[0]; //
+    while( (readFile_Ret = inFile.read((char *)frame->data[0], frame->linesize[0])) > 0 ) {
 
 
         if (readFile_Ret < frame->linesize[0] ) {
-
-            qDebug() << "每个样本大小 : " << av_get_bytes_per_sample((AVSampleFormat) frame->format) ; // 4
-            qDebug() << "声道数 : " << av_get_channel_layout_nb_channels(frame->channel_layout) ; // 2
-
             int bytes = av_get_bytes_per_sample((AVSampleFormat) frame->format); //每个样本大小
             int ch = av_get_channel_layout_nb_channels(frame->channel_layout); // 通道数
             frame->nb_samples = readFile_Ret / (bytes * ch); // 样本数量 /  每个样本的总大小
 
         } else {
             // 编码
-            CHECK_IF_ERROR_BUF_END(encode(codecCtx, frame, pkt, outFile) < 0, "encode");
+            encode_ret = encode(codecCtx, frame, pkt, outFile);
+            qDebug() << "encode_ret" << encode_ret;
+            CHECK_IF_ERROR_BUF_END(encode_ret < 0, "encode");
         }
 
     }
 
-    // 在读取最后一次
-    encode(codecCtx,nullptr,pkt,outFile);
+    // 在读取最后一次， 冲刷缓冲区
+    encode(codecCtx, nullptr, pkt, outFile);
 
 end:
     // 关闭文件
