@@ -141,7 +141,6 @@ void AACEncodeThread::run() {
     int outfileOpen_Ret;
 
     int readFile_Ret;
-    int encode_Ret;
 
 
     infilename = IN_PCM_FILEPATH;
@@ -168,7 +167,6 @@ void AACEncodeThread::run() {
     // 不同的比特率影响不同的编码大小.
     // codecCtx->bit_rate = (44100 * 32 * codecCtx->channels);
     codecCtx->bit_rate = 64000;
-
 
     // 检查编码器支持的样本格式
     check_sample_fmt_Ret = check_sample_fmt(codec, codecCtx->sample_fmt);
@@ -214,25 +212,22 @@ void AACEncodeThread::run() {
 
     // 编码
     // 源文件 ==> (AVFrame)输入缓冲区 ==> 编码器 ==> (AVPacket)输出缓冲区 ==> 输出文件
-    // frame 是一帧的数据,  把文件中的数据读取到frame中
     while( (readFile_Ret = inFile.read((char *)frame->data[0],frame->linesize[0])) > 0 ) {
+        qDebug() << "readFile_Ret : " << readFile_Ret << "frame->linesize[0] : " << frame->linesize[0]; //
 
-        qDebug() << "readFile_Ret : " << readFile_Ret;
-        // 一帧一帧数据读取, 如果最后一帧的数据大小填不满缓冲区
+
         if (readFile_Ret < frame->linesize[0] ) {
 
-            int bytes = av_get_bytes_per_sample((AVSampleFormat) frame->format);
-            int ch = av_get_channel_layout_nb_channels(frame->channel_layout);
-            // 设置真正有效的样本帧数量
-            // 防止编码器编码了一些冗余数据
-            frame->nb_samples = readFile_Ret / (bytes * ch);
+            qDebug() << "每个样本大小 : " << av_get_bytes_per_sample((AVSampleFormat) frame->format) ; // 4
+            qDebug() << "声道数 : " << av_get_channel_layout_nb_channels(frame->channel_layout) ; // 2
 
+            int bytes = av_get_bytes_per_sample((AVSampleFormat) frame->format); //每个样本大小
+            int ch = av_get_channel_layout_nb_channels(frame->channel_layout); // 通道数
+            frame->nb_samples = readFile_Ret / (bytes * ch); // 样本数量 /  每个样本的总大小
 
         } else {
             // 编码
-            encode_Ret = encode(codecCtx, frame, pkt, outFile) ;
-            qDebug() << "encode_Ret :" << encode_Ret;
-            CHECK_IF_ERROR_BUF_END(encode_Ret < 0, "encode");
+            CHECK_IF_ERROR_BUF_END(encode(codecCtx, frame, pkt, outFile) < 0, "encode");
         }
 
     }
@@ -241,7 +236,6 @@ void AACEncodeThread::run() {
     encode(codecCtx,nullptr,pkt,outFile);
 
 end:
-
     // 关闭文件
     inFile.close();
     outFile.close();
@@ -251,8 +245,6 @@ end:
     av_packet_free(&pkt);
     avcodec_free_context(&codecCtx);
     qDebug() << "AACEncodeThread end ";
-
-
 }
 
 
