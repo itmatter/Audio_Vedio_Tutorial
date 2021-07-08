@@ -33,7 +33,8 @@ extern "C" {
     #define OUT_PCM_FILEPATH "/Users/liliguang/Desktop/aac_decode_to_pcm.pcm"
 #endif
 
-
+#define AUDIO_INBUF_SIZE 20480
+#define AUDIO_REFILL_THRESH 4096
 
 AACDecodeThread::AACDecodeThread(QObject *parent) : QThread(parent) {
     // 当监听到线程结束时（finished），就调用deleteLater回收内存
@@ -70,6 +71,7 @@ static int decode(AVCodecContext *ctx,
                   AVFrame *frame,
                   AVPacket *pkt,
                   QFile &outFile) {
+
     // 发送数据到解码
     int ret = avcodec_send_packet(ctx, pkt);
     if (ret < 0) {
@@ -78,21 +80,27 @@ static int decode(AVCodecContext *ctx,
         return ret;
     }
 
-    // 不断从编码器中取出编码后的数据
-    // while (ret >= 0)
-    while (true) {
-        ret = avcodec_receive_frame(ctx, frame);
-        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-            // 继续读取数据到frame，然后送到编码器
-            return 0;
-        } else if (ret < 0) { // 其他错误
-            return ret;
-        }
+    // 从解码器中获取到数据到frame
+    ret = avcodec_receive_frame(ctx, frame);
+    if (ret == AVERROR(EAGAIN) ) {
+        qDebug() << "ret == AVERROR(EAGAIN)" << ret ;
+        return ret;
+    } else if (ret == AVERROR_EOF) {
+        // 全部获取完毕
+        qDebug() << "ret == AVERROR_EOF" << ret  ;
 
-        // 成功从编码器拿到编码后的数据
-        // 将编码后的数据写入文件
-        outFile.write((char *) frame->data[0], frame->linesize[0]);
+        return ret;
+    } else if (ret < 0) {
+        qDebug() << "ret < 0" << ret ;
+
+        return ret;
     }
+    qDebug() << "ret == 0" << ret ;
+
+    // 成功从编码器拿到编码后的数据
+    // 将编码后的数据写入文件
+    outFile.write((char *) frame->data[0], frame->linesize[0]);
+    return 0;
 }
 
 
@@ -135,10 +143,10 @@ void AACDecodeThread::run() {
     QFile outFile(outfilename);
 
     // 加上AV_INPUT_BUFFER_PADDING_SIZE是为了防止某些优化过的reader一次性读取过多导致越界.
-    int indataSize = 20480;                                         // 缓冲区大小
-    char inDataArray[indataSize + AV_INPUT_BUFFER_PADDING_SIZE];    // 输入缓冲区
-    char *inData = inDataArray;                                     // 指向输入缓冲区指针
-    int inDataLen = 0;
+    char inDataArray[AUDIO_INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE];   // 输入缓冲区
+    char *inData = inDataArray;                                          // 指向输入缓冲区指针
+    int inDataLen = 0; // 读取到文件的数据大小
+    bool readMoreReachEnd = false;// 加载更多文件数据是否已经结束
 
     int inParserRet = 0;
 
@@ -147,11 +155,11 @@ void AACDecodeThread::run() {
     // 解码逻辑  源文件 ==> 解析器 ==> (AVPacket)输入缓冲区 ==> 解码器 ==> (AVFrame)输出缓冲区 ==> 输出文件
 
     // 输入文件
-    infileOpen_Ret = !inFile.open(QFile::ReadOnly);
-    CHECK_IF_ERROR_BUF_END(infileOpen_Ret, "inFile.open");
+    infileOpen_Ret = inFile.open(QFile::ReadOnly);
+    CHECK_IF_ERROR_BUF_END(!infileOpen_Ret, "inFile.open");
     // 输出文件
-    outfileOpen_Ret = !outFile.open(QFile::WriteOnly);
-    CHECK_IF_ERROR_BUF_END(outfileOpen_Ret, "outFile.open");
+    outfileOpen_Ret = outFile.open(QFile::WriteOnly);
+    CHECK_IF_ERROR_BUF_END(!outfileOpen_Ret, "outFile.open");
 
     // 解码器
     codec = avcodec_find_decoder_by_name("libfdk_aac");
@@ -183,37 +191,71 @@ void AACDecodeThread::run() {
     // pkt送到解码器
     // 输出
 
+    // 先读取一次， 如果有值，解析数据
+    //
+    //  总大小 20480 + AV_INPUT_BUFFER_PADDING_SIZE
+    //  ----------------------------------------------------
+    //  | 【4096】 【4096】 【4096】 【4096】 【4096】 。。。  |
+    //  ----------------------------------------------------
+    //  每次读取4096, 4096的内容中， 用解析器解析， 解析器每次解析180-200左右，直到解析完毕
     // inDataLen 每次读取文件的长度
-    while ( (inDataLen = inFile.read(inDataArray, indataSize)) > 0) {
-        inData = inDataArray;
 
-        while(inDataLen > 0) {
-            inParserRet = av_parser_parse2(codecParserCtx,
-                                           codecCtx,
-                                           &pkt->data,
-                                           &pkt->size,
-                                           (uint8_t *)inData,
-                                           inDataLen,
-                                           AV_NOPTS_VALUE,
-                                           AV_NOPTS_VALUE,
-                                           0);
+    inDataLen = inFile.read(inDataArray, AUDIO_INBUF_SIZE);
+    CHECK_IF_ERROR_BUF_END(inDataLen <= 0, "inFile.read");
 
-            CHECK_IF_ERROR_BUF_END(inParserRet < 0, "av_parser_parse2");
+    inData = inDataArray;
 
-            // 指针位置偏移，跳过已经解析的数据
-            inData += inParserRet;
+    // 每一次解析内容大小
+    while(inDataLen > 0) {
+        //the number of bytes of the input bitstream used.
+        inParserRet = av_parser_parse2(codecParserCtx,
+                                       codecCtx,
+                                       &pkt->data,
+                                       &pkt->size,
+                                       (uint8_t *)inData,//输入缓冲区。
+                                       inDataLen,//buf_size + AV_INPUT_BUFFER_PADDING_SIZE。
+                                       AV_NOPTS_VALUE,
+                                       AV_NOPTS_VALUE,
+                                       0);
 
-            //读取的大小减去已经解析的大小
-            inDataLen  -= inParserRet;
+        CHECK_IF_ERROR_BUF_END(inParserRet < 0, "av_parser_parse2");
 
-            // 编码
+        // 指针位置偏移，跳过已经解析的数据
+        inData += inParserRet;
+        //读取的大小减去已经解析的大小
+        inDataLen  -= inParserRet;
+
+        if ( inParserRet > 0) {
             decode_ret = decode(codecCtx, frame, pkt, outFile);
-            qDebug() << "inParserRet" << inParserRet << "decode_ret" << decode_ret << "pkt->size " << pkt->size ;
-            CHECK_IF_ERROR_BUF_END( pkt->size > 0 && decode_ret < 0, "decode_ret");
+            CHECK_IF_ERROR_BUF_END(  decode_ret < 0, "decode_ret");
+        }
+
+
+        // 每次读取 200左右， 如果当前已经小于AUDIO_REFILL_THRESH， 那就重新读取一遍文件
+        if (inDataLen < AUDIO_REFILL_THRESH && !readMoreReachEnd) {
+            memmove(inDataArray, inData, inDataLen);
+
+            inData = inDataArray;
+
+            // 读取新的数据到后面
+            int readMoreLen = inFile.read(inDataArray + inDataLen,  AUDIO_INBUF_SIZE - inDataLen );
+            qDebug() << "readMoreLen" << readMoreLen;
+            if ( readMoreLen > 0 ) {
+                inDataLen += readMoreLen;
+                readMoreReachEnd = false;
+            } else {
+                readMoreReachEnd = true;
+            }
+
         }
     }
 
-    // 编码
+    qDebug() << "AACEncodeThread while end  ";
+
+
+    // 冲刷最后一次缓冲区
+    pkt->data = NULL;
+    pkt->size = 0;
     decode_ret = decode(codecCtx, frame, nullptr, outFile);
     qDebug() << "AACEncodeThread Last Decode ";
 
