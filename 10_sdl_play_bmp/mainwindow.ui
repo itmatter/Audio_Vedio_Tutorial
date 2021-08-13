@@ -17,14 +17,14 @@
    <widget class="QPushButton" name="playBtn">
     <property name="geometry">
      <rect>
-      <x>111</x>
-      <y>131</y>
-      <width>561</width>
-      <height>221</height>
+      <x>160</x>
+      <y>200</y>
+      <width>451</width>
+      <height>121</height>
      </rect>
     </property>
     <property name="text">
-     <string>创建SDL</string>
+     <string>显示BMP图片</string>
     </property>
    </widget>
   </widget>
@@ -34,7 +34,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
   </widget>
