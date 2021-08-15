@@ -2,40 +2,46 @@
 #include "ui_mainwindow.h"
 #include <QtDebug>
 
+#include <SDL2/SDL.h>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow) {
     ui->setupUi(this);
+
+
+
 }
+
+
 
 MainWindow::~MainWindow() {
     delete ui;
 }
 
 
+// 格式名称，设备名称
+#ifdef Q_OS_WIN
+#define FILENAME "G:/Resource/in.bmp"
+#else
+#define FILENAME "/Users/liliguang/Desktop/in.bmp"
+#endif
+
 
 void MainWindow::on_playBtn_clicked() {
-    // 调动
     qDebug() << "on_recordBtn_clicked";
-    if (!_playThread) { // 点击了“播放”
-        qDebug() << "播放";
-        // 开启线程
-        _playThread = new Playthread(this);
-        _playThread->start();
-        connect(_playThread, &Playthread::finished,
-        [this]() { // 线程结束
-            _playThread = nullptr;
-            ui->playBtn->setText("播放");
-        });
-        // 设置按钮文字
-        ui->playBtn->setText("停止");
-    } else { // 点击了“结束录音”
-        // 结束线程
-        qDebug() << "结束";
-        _playThread->setStop(true);
-        _playThread->requestInterruption();
-        _playThread = nullptr;
-        // 设置按钮文字
-        ui->playBtn->setText("播放");
+
+    if (!_yuvPlayer) {
+        _yuvPlayer = new YUVPlayer(this);
+        _yuvPlayer->showBmp((char *)FILENAME);
+        _yuvPlayer->setAttribute(Qt::WA_DeleteOnClose);
+        qDebug() << "Create";
+    } else {
+        _yuvPlayer->close();
+        _yuvPlayer = nullptr;
+         qDebug() << "End";
     }
+
+
+
 }

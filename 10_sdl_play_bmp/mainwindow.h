@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "playthread.h"
+#include "yuvPlayer.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -23,7 +23,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    Playthread *_playThread = nullptr;
+    YUVPlayer *_yuvPlayer = nullptr;
 
 };
 #endif // MAINWINDOW_H

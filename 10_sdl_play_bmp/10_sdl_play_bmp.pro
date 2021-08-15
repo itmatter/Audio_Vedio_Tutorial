@@ -11,11 +11,11 @@ CONFIG += c++11
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    playthread.cpp
+    yuvPlayer.cpp
 
 HEADERS += \
     mainwindow.h \
-    playthread.h
+    yuvPlayer.h
 
 FORMS += \
     mainwindow.ui

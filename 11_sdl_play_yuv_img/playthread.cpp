@@ -7,9 +7,19 @@ extern "C" {
 }
 
 
+
+
+// 格式名称，设备名称
+#ifdef Q_OS_WIN
 #define FILENAME "G:/Resource/out_yuv420p.yuv"
 #define IMG_W 512
 #define IMG_H 512
+#else
+#define FILENAME "/Users/liliguang/Desktop/record_to_yuv.yuv"
+#define IMG_W 512
+#define IMG_H 512
+#endif
+
 
 
 // 出错了就执行goto end
