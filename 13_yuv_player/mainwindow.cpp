@@ -10,7 +10,6 @@
 #define FRAME_RATE 24
 
 
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow) {
@@ -18,16 +17,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 主窗口大小 ：800* 600
     this->setFixedSize(QSize(800, 600));
-
     _yuvPlayer = new YuvPlayer(this);
     _yuvPlayer->setGeometry(200, 50, 400, 400);
-
 }
 
 MainWindow::~MainWindow() {
     delete ui;
 }
-
 
 void MainWindow::on_playBtn_clicked() {
     // 播放， 接受一个YUV结构体

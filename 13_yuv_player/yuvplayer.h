@@ -1,7 +1,6 @@
 #ifndef YUVPLAYER_H
 #define YUVPLAYER_H
 
-
 extern "C" {
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -11,7 +10,7 @@ extern "C" {
 #include <QFile>
 
 typedef struct  {
-    const char *fileName; //文件路径
+    const char *fileName; //文件路径A
     int width;  //分辨率-宽
     int height; //分辨率-高
     int framerate;  //帧率
@@ -44,7 +43,6 @@ private:
     // 是否终止播放， 默认true
     bool _stop = true;
 
-
     // yuv参数
     YuvParams _yuvParams;
     void loadYUVData();
@@ -52,7 +50,6 @@ private:
 public:
     explicit YuvPlayer(QWidget *parent = nullptr);
     ~YuvPlayer();
-
 
     void play(YuvParams yuvParam);
     bool isPlaying();
@@ -62,9 +59,6 @@ public:
 
     void stop();
     bool isStop();
-
-
-
 signals:
 
 };

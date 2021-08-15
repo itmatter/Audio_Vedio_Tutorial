@@ -3,7 +3,6 @@
 #include <QTimer>
 #include <QDate>
 
-
 YuvPlayer::YuvPlayer(QWidget *parent) : QWidget(parent) {
     setAttribute(Qt::WA_StyledBackground);
     setStyleSheet("background: black");
@@ -30,9 +29,7 @@ YuvPlayer::YuvPlayer(QWidget *parent) : QWidget(parent) {
         SDL_DestroyRenderer(_renderer);
         return;
     }
-
 }
-
 
 YuvPlayer::~YuvPlayer() {
     SDL_DestroyWindow(_window);
@@ -41,16 +38,12 @@ YuvPlayer::~YuvPlayer() {
     SDL_Quit();
 }
 
-
-
 // 播放
 void YuvPlayer::play(YuvParams yuvParam) {
-
     // 如果当前是播放的过程中， 直接跳过
     if(_playing && !_pause && !_stop) {
         return;
     }
-
 
     // 如果当前是暂停的过程中， 恢复播放
     if(!_playing && _pause && !_stop) {
@@ -64,7 +57,6 @@ void YuvPlayer::play(YuvParams yuvParam) {
     _playing = true;
     _pause = false;
     _stop = false;
-
 
     _yuvParams.fileName = yuvParam.fileName;
     _yuvParams.width = yuvParam.width;
@@ -125,14 +117,11 @@ void YuvPlayer::stop() {
     // 停止关闭文件
     _infile.close();
 
-
     if(_renderer) {
-        //设置全黑
         SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(_renderer);
         SDL_RenderPresent(_renderer);
     }
-
 }
 
 
@@ -146,37 +135,28 @@ bool YuvPlayer::isStop() {
     return _stop;
 }
 
-
-
-
-
 // 每隔一段时间就会调用
 void YuvPlayer::loadYUVData() {
     qDebug() << "Time : " <<  QTime::currentTime();
     int imgSize = _yuvParams.width * _yuvParams.height * 1.5;
     char data[imgSize];
-
     // 创建一个定时器， 一秒获取固定帧的数据
     if( _infile.read(data, imgSize) > 0) {
         // 将YUV数据更新到render中
         if(SDL_UpdateTexture(_texture, nullptr, data, _yuvParams.width)) {
             qDebug() << "SDL_RenderCopy error : " << SDL_GetError();
         }
-
         if(SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE)) {
             qDebug() << "SDL_SetRenderDrawColor error : " << SDL_GetError();
         }
-
         if(SDL_RenderCopy(_renderer, _texture, nullptr, nullptr)) {
             qDebug() << "SDL_RenderCopy error : " << SDL_GetError();
         }
-
         // 将此前的所有需要渲染的内容更新到屏幕上
         SDL_RenderPresent(_renderer);
     } else {
         this->stop();
     }
-
 }
 
 
