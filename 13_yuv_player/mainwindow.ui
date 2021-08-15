@@ -14,10 +14,13 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="acceptDrops">
+    <bool>false</bool>
+   </property>
    <widget class="QPushButton" name="playBtn">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>200</x>
       <y>500</y>
       <width>180</width>
       <height>44</height>
@@ -30,7 +33,7 @@
    <widget class="QPushButton" name="stopBtn">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>420</x>
       <y>500</y>
       <width>180</width>
       <height>44</height>
