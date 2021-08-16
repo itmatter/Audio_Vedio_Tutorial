@@ -66,9 +66,9 @@ void YuvPlayer::play(YuvParams yuvParam) {
     _yuvParams.timeInterval = (1 * 1000 / _yuvParams.framerate);
 
 
-    if (_yuvParams.width > 500) {
-        SDL_SetWindowSize(_window, _yuvParams.width * 0.5 , _yuvParams.height * 0.5 );
-    }
+//    if (_yuvParams.width > 500) {
+//        SDL_SetWindowSize(_window, _yuvParams.width * 0.5 , _yuvParams.height * 0.5 );
+//    }
 
 
     if (!qTimer) {
@@ -79,7 +79,7 @@ void YuvPlayer::play(YuvParams yuvParam) {
             return;
         }
         _texture = SDL_CreateTexture(_renderer, _yuvParams.pixelFormat, SDL_TEXTUREACCESS_STREAMING, _yuvParams.width, _yuvParams.height);
-        SDL_SetTextureScaleMode(_texture,SDL_ScaleModeNearest);
+        SDL_SetTextureScaleMode(_texture, SDL_ScaleModeNearest);
         if (!_texture) {
             qDebug() << "SDL_CreateTexture error : " << SDL_GetError();
             return;
@@ -162,7 +162,7 @@ void YuvPlayer::loadYUVData() {
         if(SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE)) {
             qDebug() << "SDL_SetRenderDrawColor error : " << SDL_GetError();
         }
-        SDL_Rect rect = {0,0,_yuvParams.width / 2 , _yuvParams.height / 2 };
+        SDL_Rect rect = {0, 0, _yuvParams.width, _yuvParams.height  };
         if(SDL_RenderCopy(_renderer, _texture, nullptr, &rect)) {
             qDebug() << "SDL_RenderCopy error : " << SDL_GetError();
         }
