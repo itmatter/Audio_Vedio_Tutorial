@@ -10,10 +10,10 @@
 #define IMG_H 288
 #define FRAME_RATE 24
 #else
-#define FILENAME "/Users/liliguang/Desktop/record_to_yuv.yuv"
-#define PIXEL_FORMAT SDL_PIXELFORMAT_YV12
-#define IMG_W 1280
-#define IMG_H 720
+#define FILENAME "/Users/liliguang/Desktop/dstYuv.yuv"
+#define PIXEL_FORMAT SDL_PIXELFORMAT_IYUV
+#define IMG_W 640
+#define IMG_H 360
 #define FRAME_RATE 30
 #endif
 
