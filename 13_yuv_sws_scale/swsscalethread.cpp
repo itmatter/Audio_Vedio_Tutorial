@@ -83,8 +83,8 @@ void SwsScaleThread::run() {
 
 
     // 输出源
-    int dstW = 640;
-    int dstH = 360;
+    int dstW = 1280;
+    int dstH = 720;
     AVPixelFormat dstFormat = AV_PIX_FMT_YUV420P;
     int dsrImageSize = dstW * dstH * 1.5;
 

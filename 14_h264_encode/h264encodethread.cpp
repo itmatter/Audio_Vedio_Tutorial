@@ -30,10 +30,11 @@ extern "C" {
     #define YUV_VIDEO_SIZE_WIDTH 352
     #define YUV_VIDEO_SIZE_HEIGH 288
 #else
-    #define IN_YUV_FILEPATH "/Users/liliguang/Desktop/record_to_pcm.pcm"
-    #define OUT_H264_FILEPATH "/Users/liliguang/Desktop/pcm_to_aac.aac"
-    #define YUV_VIDEO_SIZE_WIDTH 352
-    #define YUV_VIDEO_SIZE_HEIGH 288
+    #define IN_YUV_FILEPATH "/Users/liliguang/Desktop/dstYuv.yuv"
+    #define OUT_H264_FILEPATH "/Users/liliguang/Desktop/dstYuv.h264"
+    #define YUV_VIDEO_SIZE_WIDTH 1280
+    #define YUV_VIDEO_SIZE_HEIGH 720
+    #define FRAMERATE 30
 #endif
 
 
@@ -177,7 +178,7 @@ void H264EncodeThread::run() {
     // fps = codecCtx->time_base.den / codecCtx->time_base.num
     // 24 = 24 / 1
     codecCtx->time_base.num = 1;       //分子
-    codecCtx->time_base.den = 24;         //分母
+    codecCtx->time_base.den = FRAMERATE;         //分母
 
 
     // 检查编码器支持的样本格式
@@ -222,18 +223,9 @@ void H264EncodeThread::run() {
     // 这里应该读取一帧的大小
     while( (readFile_Ret = inFile.read((char *)frame->data[0], imageSize )) > 0 ) {
         frame->pts = ptsIndex++;
-//        qDebug() << "readFile_Ret" << readFile_Ret;
-//        qDebug() << "frame->linesize[0]" << frame->linesize[0];
-//        if (readFile_Ret < frame->linesize[0] ) {
-//            qDebug() << "最后一次"  ;
-//            qDebug() << "readFile_Ret" << readFile_Ret;
-//            qDebug() << "frame->linesize[0]" << frame->linesize[0];
-//        } else {
         // 编码
         encode_ret = encode(codecCtx, frame, pkt, outFile);
         CHECK_IF_ERROR_BUF_END(encode_ret < 0, "encode");
-//        }
-
     }
 
     // 在读取最后一次， 冲刷缓冲区
@@ -248,7 +240,7 @@ end:
     av_frame_free(&frame);
     av_packet_free(&pkt);
     avcodec_free_context(&codecCtx);
-    qDebug() << "AACEncodeThread end ";
+    qDebug() << "H264EncodeThread end ";
 }
 
 
