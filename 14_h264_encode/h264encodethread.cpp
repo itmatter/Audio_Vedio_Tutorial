@@ -25,10 +25,12 @@ extern "C" {
 
 
 #ifdef Q_OS_WIN
-    #define IN_YUV_FILEPATH "G:/BigBuckBunny_CIF_24fps.yuv"
-    #define OUT_H264_FILEPATH "G:/BigBuckBunny_CIF_24fps_h264.h264"
-    #define YUV_VIDEO_SIZE_WIDTH 352
-    #define YUV_VIDEO_SIZE_HEIGH 288
+    #define IN_YUV_FILEPATH "G:/BigBuckBunny_CIF_24fps2.yuv"
+    #define OUT_H264_FILEPATH "G:/BigBuckBunny_CIF_24fps2.h264"
+    #define YUV_VIDEO_SIZE_WIDTH 1280
+    #define YUV_VIDEO_SIZE_HEIGH 720
+    #define FRAMERATE 24
+
 #else
     #define IN_YUV_FILEPATH "/Users/liliguang/Desktop/dstYuv.yuv"
     #define OUT_H264_FILEPATH "/Users/liliguang/Desktop/dstYuv.h264"
@@ -110,6 +112,7 @@ static int encode(AVCodecContext *ctx,
 
         // 成功从编码器拿到编码后的数据
         // 将编码后的数据写入文件
+        qDebug() << pkt->data << pkt->size;
         outFile.write((char *) pkt->data, pkt->size);
 
         // 释放pkt内部的资源
@@ -183,7 +186,7 @@ void H264EncodeThread::run() {
 
     // 检查编码器支持的样本格式
     check_pixel_fmt_Ret = check_pixel_fmt(codec, codecCtx->pix_fmt);
-    CHECK_IF_ERROR_BUF_END(!check_pixel_fmt_Ret, "check_sample_fmt");
+    CHECK_IF_ERROR_BUF_END(!check_pixel_fmt_Ret, "check_pixel_fmt");
 
     // 打开编码器
     avcodec_open2_Ret = avcodec_open2(codecCtx, codec, nullptr);
