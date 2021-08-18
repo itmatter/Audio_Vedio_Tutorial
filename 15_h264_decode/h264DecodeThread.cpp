@@ -5,6 +5,7 @@
 
 extern "C" {
 #include <libavcodec/avcodec.h>
+#include <libavutil/imgutils.h>
 }
 
 #define ERROR_BUF(ret) \
@@ -22,11 +23,15 @@ extern "C" {
 
 
 #ifdef Q_OS_WIN
-    #define IN_H264_FILEPATH "G:/Resource/in.h264"
-    #define OUT_H264_FILEPATH "G:/Resource/out.yuv"
+    #define IN_H264_FILEPATH "G:/BigBuckBunny_CIF_24fps2.h264"
+    #define OUT_H264_FILEPATH "G:/BigBuckBunny_CIF_24fps2_h264_out.yuv"
+    #define IMGW 1280
+    #define IMGH 720
 #else
     #define IN_H264_FILEPATH "/Users/liliguang/Desktop/dstYuv.h264"
     #define OUT_H264_FILEPATH "/Users/liliguang/Desktop/h264_out.yuv"
+    #define IMGW 352
+    #define IMGH 288
 #endif
 
 #define VIDEO_INBUF_SIZE 4096
@@ -58,6 +63,8 @@ static int decode(AVCodecContext *ctx,
                   AVPacket *pkt,
                   QFile &outFile) {
 
+
+
     // 发送数据到解码 , sent_ret = 0 为sucesss
     int ret = avcodec_send_packet(ctx, pkt);
 
@@ -73,7 +80,6 @@ static int decode(AVCodecContext *ctx,
         qDebug() << "avcodec_receive_frame : " << ret ;
 
 
-
         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF ) {
             return ret;
         } else  if (ret < 0) {
@@ -83,20 +89,38 @@ static int decode(AVCodecContext *ctx,
 
         qDebug() << "解码出第" << ++frameIdx << "帧";
         // 将解码后的数据写入文件
-        // 写入Y平面
-        outFile.write((char *) frame->data[0],
-                      frame->linesize[0] * ctx->height);
-        // 写入U平面
-        outFile.write((char *) frame->data[1],
-                      frame->linesize[1] * ctx->height >> 1);
-        // 写入V平面
-        outFile.write((char *) frame->data[2],
-                      frame->linesize[2] * ctx->height >> 1);
 
-        // 成功从编码器拿到编码后的数据
-        // 将编码后的数据写入文件
-//        outFile.write((char *) frame->data[0], frame->linesize[0]);
-//        return 0;
+        qDebug() << "frame->linesize[0]" << frame->linesize[0] ;
+        qDebug() << "frame->linesize[1]" << frame->linesize[1] ;
+        qDebug() << "frame->linesize[2]" << frame->linesize[2] ;
+        qDebug() << "frame->linesize[3]" << frame->linesize[3] ;
+        qDebug() << "ctx->width" << ctx->width ;
+        qDebug() << "ctx->height" << ctx->height ;
+
+        //yuv420p   yyyy yyyy uu vv
+        //一帧yuv420p   352 * 288  * 1.5 = 152064
+        // y分量 ：152064 * (8/12) = 152064 * 0.6666 = 101376
+        // u分量 ：152064 * (2/12) = 152064 * 0.1666 =  25344
+        // v分量 ：152064 * (2/12) = 152064 * 0.1666 =  25344
+        // 字节流中存储样式 ：
+        // y1y2y3.....y101376 u1u2u3......u25344 v1v2v3......v25344
+
+
+        // 写入Y平面
+        outFile.write((char *) frame->data[0], frame->linesize[0] * ctx->height);
+        // 写入U平面
+        outFile.write((char *) frame->data[1], frame->linesize[1] * ctx->height >> 1);
+        // 写入V平面
+        outFile.write((char *) frame->data[2], frame->linesize[2] * ctx->height >> 1);
+
+//        // 写入Y平面
+//        outFile.write((char *) frame->data[0], 101376);
+//        // 写入U平面
+//        outFile.write((char *) frame->data[1], 25344);
+//        // 写入V平面
+//        outFile.write((char *) frame->data[2], 25344);
+
+
     }
 }
 
@@ -132,8 +156,6 @@ void H264DecodeThread::run() {
     int infileOpen_Ret;
     int outfileOpen_Ret;
 
-
-
     // 加上AV_INPUT_BUFFER_PADDING_SIZE是为了防止某些优化过的reader一次性读取过多导致越界.
     char inDataArray[VIDEO_INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE];   // 输入缓冲区
     char *inData = inDataArray;                                          // 指向输入缓冲区指针
@@ -153,30 +175,42 @@ void H264DecodeThread::run() {
     outfileOpen_Ret = outFile.open(QFile::WriteOnly);
     CHECK_IF_ERROR_BUF_END(!outfileOpen_Ret, "outFile.open");
 
+    memset(inData + VIDEO_INBUF_SIZE, 0, AV_INPUT_BUFFER_PADDING_SIZE);
+
+
+
     // 解码器
-    codec = avcodec_find_decoder_by_name("h264");
+    codec = avcodec_find_decoder(AV_CODEC_ID_H264);
+//    codec = avcodec_find_decoder_by_name("h264");
     CHECK_IF_ERROR_BUF_END(!codec, "avcodec_find_decoder");
 
-    // 解析器上下文
+    // Parser解析器上下文
     codecParserCtx = av_parser_init(codec->id);
     CHECK_IF_ERROR_BUF_END(!codecParserCtx, "av_parser_init");
+
+
 
     // 解码器上下文
     codecCtx = avcodec_alloc_context3(codec);
     CHECK_IF_ERROR_BUF_END(!codecCtx, "avcodec_alloc_context3");
 
-    // 打开解码器
-    avcodec_open2_Ret = avcodec_open2(codecCtx, codec, nullptr);
-    CHECK_IF_ERROR_BUF_END(avcodec_open2_Ret, "avcodec_open2");
+
 
     // 创建输入Packet
     pkt = av_packet_alloc();
     CHECK_IF_ERROR_BUF_END(!pkt, "av_packet_alloc");
 
+
+
     // 创建输出rame
     frame = av_frame_alloc();
     CHECK_IF_ERROR_BUF_END(!frame, "av_frame_alloc");
 
+
+
+    // 打开解码器
+    avcodec_open2_Ret = avcodec_open2(codecCtx, codec, NULL);
+    CHECK_IF_ERROR_BUF_END(avcodec_open2_Ret, "avcodec_open2");
 
 
     do {
@@ -200,9 +234,9 @@ void H264DecodeThread::run() {
                                            AV_NOPTS_VALUE,
                                            0);
 
+
             // 如果经过parser 处理返回的内容大于0, 那么就是解码成功
             CHECK_IF_ERROR_BUF_END(inParserRet < 0, "av_parser_parse2");
-
 
             inData += inParserRet;
             inLen  -= inParserRet;
@@ -211,13 +245,14 @@ void H264DecodeThread::run() {
 
             if (pkt->size) {
                 decode_ret = decode(codecCtx, frame,  pkt, outFile);
-                CHECK_IF_ERROR_BUF_END( (decode_ret != AVERROR(EAGAIN) && decode_ret != AVERROR_EOF && decode_ret < 0) , "decode");
+                CHECK_IF_ERROR_BUF_END( (decode_ret != AVERROR(EAGAIN) && decode_ret != AVERROR_EOF && decode_ret < 0), "decode");
             }
 
 
             // 如果到了文件尾部
-            if (inEnd) break;
-
+            if (inEnd) {
+                break;
+            }
 
         }
         qDebug() << " " ;
