@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QDebug>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow) {
@@ -20,8 +21,7 @@ void MainWindow::on_reSampleBtn_clicked() {
 
 }
 
-void MainWindow::on_swsScaleBtn_clicked()
-{
+void MainWindow::on_swsScaleBtn_clicked() {
     qDebug() << "on_swsScaleBtn_clicked";
 
     // 像素格式转换
